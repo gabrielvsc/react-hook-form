@@ -2,10 +2,25 @@ import { useState } from 'react';
 import './styles/global.css';
 
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+// Forms Structure
+const createUserFormSchema = z.object({
+  email: z.string()
+    .nonempty('O e-mail é obrigatório')
+    .email('Formato de e-mail inválido'),
+  password: z.string()
+    .min(6, 'A senha preciso de no mínimo 6 caracteres'),
+})
+
+type CreateUserFormData = z.infer<typeof createUserFormSchema>
 
 export function App() {
   const [output, setOutput] = useState('')
-  const { register, handleSubmit } = useForm()
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserFormSchema),
+  })
 
   function createUser(data: any) {
     setOutput(JSON.stringify(data, null, 2))
@@ -24,6 +39,7 @@ export function App() {
             className="border border-zinc-200 shadow-sm rounded h-10 px-3" 
             {...register('email')}
           />
+          {errors.email && <span>{errors.email.message}</span>}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -33,6 +49,7 @@ export function App() {
             className="border border-zinc-200 shadow-sm rounded h-10 px-3" 
             {...register('password')}
           />
+          {errors.password && <span>{errors.password.message}</span>}
         </div>
 
         <button 
